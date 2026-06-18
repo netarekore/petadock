@@ -1,0 +1,2 @@
+# petadock
+Windows Clipboard Manager
