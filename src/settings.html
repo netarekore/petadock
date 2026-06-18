@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>PetaDock 設定</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--bg2:#f8f8fb;--bg3:#f0f0f5;
+  --text:#18181b;--text2:#71717a;--text3:#a1a1aa;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --accent:#5b5bd6;--accent-bg:#eeeeff;
+  --ok-bg:#f0fdf4;--ok-text:#166534;
+  --danger-bg:#fef2f2;--danger-text:#991b1b;--danger-border:#fca5a5;
+  --r:10px;--r-sm:7px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#18181b;--bg2:#1e1e24;--bg3:#27272a;
+  --text:#fafafa;--text2:#a1a1aa;--text3:#52525b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--accent-bg:#1e1e3a;
+  --ok-bg:#052e16;--ok-text:#86efac;--danger-bg:#2d1010;--danger-text:#fca5a5;--danger-border:#7f1d1d;
+}}
+html,body{width:480px;height:640px;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,'Helvetica Neue','Segoe UI',sans-serif;font-size:13px;}
+.layout{display:flex;flex-direction:column;height:100%;}
+
+/* ヘッダー */
+.header{padding:14px 18px 0;flex-shrink:0;border-bottom:1px solid var(--border);}
+.header-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.header-title{font-size:15px;font-weight:700;color:var(--text);}
+.header-title svg{width:18px;height:18px;vertical-align:middle;margin-right:4px;color:var(--accent);}
+
+/* タブナビ */
+.tab-nav{display:flex;gap:0;}
+.tab-nav-btn{padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s;}
+.tab-nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-nav-btn:hover:not(.active){color:var(--text);}
+
+/* コンテンツ */
+.tab-content{flex:1;overflow-y:auto;padding:16px 18px 28px;}
+.tab-content::-webkit-scrollbar{width:3px;}
+.tab-content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* セクション */
+.section{margin-bottom:20px;}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:10px;}
+.card{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-row{padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--border);}
+.card-row:last-child{border-bottom:none;}
+.row-top{display:flex;align-items:center;gap:8px;}
+.row-label{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+.row-desc{font-size:11px;color:var(--text2);line-height:1.5;}
+
+/* ボタン類 */
+.btn{font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;}
+.btn.default{background:var(--bg3);border:1px solid var(--border2);color:var(--text);}
+.btn.default:hover{background:var(--bg2);}
+.btn.primary{background:var(--accent);border:1px solid var(--accent);color:#fff;}
+.btn.primary:hover{opacity:.9;}
+.btn.danger{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger-text);}
+.btn.danger:hover{opacity:.9;}
+.btn.link{background:none;border:none;color:var(--accent);padding:4px 0;text-decoration:underline;cursor:pointer;font-size:12px;}
+.icon-btn{background:none;border:1px solid var(--border2);border-radius:var(--r-sm);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;}
+.icon-btn:hover{background:var(--bg3);}
+.icon-btn.del:hover{background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger-border);}
+.icon-btn svg{width:13px;height:13px;}
+
+/* 入力 */
+.s-input{font-size:12px;font-family:inherit;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--bg2);color:var(--text);outline:none;}
+.s-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg);}
+.s-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;background:var(--accent-bg);color:var(--accent);font-family:monospace;min-width:80px;justify-content:center;}
+.key-capture{display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px dashed var(--border2);border-radius:var(--r-sm);cursor:pointer;transition:border-color .15s;}
+.key-capture:hover,.key-capture.listening{border-color:var(--accent);background:var(--accent-bg);}
+.key-capture.listening .key-hint{color:var(--accent);}
+.key-hint{font-size:11px;color:var(--text3);}
+.select-input{font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--bg2);color:var(--text);outline:none;}
+
+/* タブ編集 */
+.tab-edit-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:grab;}
+.tab-edit-row:last-child{border-bottom:none;}
+.tab-edit-row.dragging{opacity:.4;cursor:grabbing;}
+.tab-edit-row.drag-over{border-top:2px solid var(--accent);}
+.grip{color:var(--text3);flex-shrink:0;display:flex;align-items:center;}
+.grip svg{width:14px;height:14px;}
+.pin-toggle{background:none;border:1px solid var(--border2);border-radius:var(--r-sm);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--text3);flex-shrink:0;}
+.pin-toggle.pinned{color:var(--accent);border-color:var(--accent);background:var(--accent-bg);}
+.tab-edit-row input{flex:1;font-size:13px;background:transparent;border:none;outline:none;color:var(--text);}
+
+/* アイテム編集 */
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.pill{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);background:none;}
+.pill.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);}
+.item-edit-row{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:grab;}
+.item-edit-row:last-child{border-bottom:none;}
+.item-edit-row.dragging{opacity:.4;cursor:grabbing;}
+.item-edit-row.drag-over{border-top:2px solid var(--accent);}
+.item-fields{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;}
+.item-fields input{font-size:12px;padding:2px 0;border:none;outline:none;background:transparent;color:var(--text);font-weight:500;}
+.item-fields input::placeholder{color:var(--text3);}
+.item-fields textarea{font-size:11px;padding:0;border:none;outline:none;background:transparent;color:var(--text2);resize:none;line-height:1.5;min-height:18px;font-family:inherit;}
+.field-sep{height:1px;background:var(--border);margin:2px 0;}
+
+/* データ管理グリッド */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.data-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all .15s;}
+.data-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+.data-card svg{width:22px;height:22px;}
+.io-msg{font-size:12px;padding:8px 12px;border-radius:var(--r-sm);margin-top:8px;display:none;}
+.io-msg.ok{background:var(--ok-bg);color:var(--ok-text);display:block;}
+.io-msg.err{background:var(--danger-bg);color:var(--danger-text);display:block;}
+
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:500;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="header">
+    <div class="header-top">
+      <span class="header-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        PetaDock 設定
+      </span>
+    </div>
+    <div class="tab-nav" id="tab-nav">
+      <button class="tab-nav-btn active" data-pane="pane-shortcut">ショートカット</button>
+      <button class="tab-nav-btn" data-pane="pane-tabs">タブ管理</button>
+      <button class="tab-nav-btn" data-pane="pane-data">データ</button>
+      <button class="tab-nav-btn" data-pane="pane-other">その他</button>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- ショートカット -->
+    <div class="tab-pane active" id="pane-shortcut">
+      <div class="section">
+        <div class="section-title">ショートカットキー</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">現在のショートカット</span>
+              <span class="s-badge" id="cur-key">読込中…</span>
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="row-label" style="font-size:12px;margin-bottom:8px">新しいキーを設定</div>
+
+            <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;padding:8px 10px;background:var(--bg2);border-radius:var(--r-sm);">
+              <b>方法①</b> 下のエリアをクリック → Ctrl・Shift・Alt などを<b>順番に押す</b>と自動で組み合わせを検出<br>
+              <b>方法②</b> テキスト欄に直接入力（例: <code>Ctrl+Shift+V</code>）して登録ボタンを押す
+            </div>
+
+            <div class="key-capture" id="key-capture" onclick="startKeyCapture()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 2H8l-2 5h12z"/></svg>
+              <span id="key-capture-label" class="key-hint">クリックして押す</span>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+              <input class="s-input" id="key-text-input" type="text" placeholder="直接入力: Ctrl+Shift+V" style="flex:1">
+              <button class="btn primary" onclick="applyShortcutFromText()">登録</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ管理 -->
+    <div class="tab-pane" id="pane-tabs">
+      <div class="section">
+        <div class="section-title">グループタブ</div>
+        <div class="row-desc" style="margin-bottom:8px">📌でピン留め（左固定）、⠿でドラッグして並び替え</div>
+        <div class="card" id="tab-card"></div>
+        <button class="btn default" style="margin-top:8px" onclick="showAddTabInput()">＋ タブを追加</button>
+        <div id="add-tab-row" style="display:none;display:flex;gap:6px;margin-top:8px;align-items:center">
+          <input class="s-input" id="new-tab-name" type="text" placeholder="タブ名…" style="flex:1">
+          <button class="btn primary" onclick="confirmAddTab()">追加</button>
+          <button class="btn default" onclick="hideAddTabInput()">×</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">アイテムの編集</div>
+        <div class="row-desc" style="margin-bottom:8px">タイトルを設定すると一覧に表示されます。内容がコピーされるテキストです。</div>
+        <div class="pills" id="edit-pills"></div>
+        <div class="card" id="item-card"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input class="s-input" id="edit-new-item" type="text" placeholder="新しいアイテム（内容）…" style="flex:1">
+          <button class="btn primary" onclick="addItemEdit()">追加</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">履歴の設定</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">履歴に残す最大件数</span>
+              <select class="select-input" id="max-history-sel" onchange="changeMaxHistory(this.value)">
+                ${[10,20,30,50,100].map(n=>`<option value="${n}">${n} 件</option>`).join('')}
+              </select>
+            </div>
+            <div class="row-desc">コピーした内容を最大何件まで保持するか設定します。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- データ -->
+    <div class="tab-pane" id="pane-data">
+      <div class="section">
+        <div class="section-title">エクスポート（書き出し）</div>
+        <div class="row-desc" style="margin-bottom:10px">データをファイルに保存します。PCを変えるときのバックアップに使えます。</div>
+        <div class="data-grid">
+          <button class="data-card" onclick="doExport('json')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            JSONで書き出し
+          </button>
+          <button class="data-card" onclick="doExport('csv')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><polyline points="17 16 12 11 7 16"/><line x1="12" y1="11" x2="12" y2="21"/></svg>
+            CSVで書き出し
+          </button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">インポート（読み込み）</div>
+        <div class="row-desc" style="margin-bottom:10px">バックアップファイルからデータを復元します。既存データとマージされます。</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--r-sm);border:1px solid var(--border);">
+          <span style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">読み込み方法</span>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;color:var(--text);">
+            <input type="radio" name="import-mode" value="merge" checked>
+            <span><b>追加</b>　既存データに追記します</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;color:var(--text);">
+            <input type="radio" name="import-mode" value="overwrite">
+            <span><b>上書き</b>　既存データをすべて削除して置き換えます</span>
+          </label>
+        </div>
+        <div class="data-grid">
+          <button class="data-card" onclick="doImport('json')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            JSONから読み込み
+          </button>
+          <button class="data-card" onclick="doImport('csv')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><polyline points="7 14 12 19 17 14"/><line x1="12" y1="19" x2="12" y2="9"/></svg>
+            CSVから読み込み
+          </button>
+        </div>
+        <div id="io-msg" class="io-msg"></div>
+      </div>
+    </div>
+
+    <!-- その他 -->
+    <div class="tab-pane" id="pane-other">
+      <div class="section">
+        <div class="section-title">マニュアル</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">使い方・ヘルプ</span>
+              <button class="btn primary" onclick="openManual()">マニュアルを開く</button>
+            </div>
+            <div class="row-desc">ブラウザでマニュアルページを開きます。</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">アンインストール</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">PetaDockを削除する</span>
+              <button class="btn danger" onclick="doUninstall()">アンインストール</button>
+            </div>
+            <div class="row-desc">アプリ・保存データ・自動起動の設定をすべて削除します。この操作は取り消せません。</div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">バージョン情報</div>
+        <div class="card">
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">PetaDock</span>
+              <span style="font-size:12px;color:var(--text3)" id="app-version">読込中…</span>
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="row-top">
+              <span class="row-label">最新バージョンを確認</span>
+              <button class="btn default" onclick="checkUpdate()">更新を確認</button>
+            </div>
+            <div class="row-desc">新しいバージョンがある場合は更新ダイアログが表示されます。保存データは更新後も保持されます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+function itemTitle(i){return typeof i==='object'?i.title||'':'';}
+function itemText(i) {return typeof i==='object'?i.text||'':i||'';}
+function itemObj(i)  {return typeof i==='object'?i:{title:'',text:i};}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+let state={tabs:[],maxHistory:30,editTab:''};
+let capturedKey=null;
+
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// タブナビゲーション
+document.getElementById('tab-nav').addEventListener('click',e=>{
+  const btn=e.target.closest('.tab-nav-btn');if(!btn)return;
+  document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.pane).classList.add('active');
+});
+
+async function init(){
+  const d=await api.getData();
+  state.tabs=d.tabs||[];
+  state.maxHistory=d.maxHistory||30;
+  // 正規化
+  state.tabs.forEach(tab=>{if(tab.items)tab.items=tab.items.map(i=>typeof i==='string'?{title:'',text:i}:i);});
+  state.editTab=state.tabs.find(t=>!t.isHistory)?.id||'';
+  // ショートカット表示
+  document.getElementById('cur-key').textContent=d.shortcutKey||'Ctrl+Shift+V';
+  // 履歴最大件数セレクト
+  const sel=document.getElementById('max-history-sel');
+  sel.innerHTML=[10,20,30,50,100].map(n=>`<option value="${n}"${n===state.maxHistory?' selected':''}>${n} 件</option>`).join('');
+  renderTabCard();renderPills();renderItemCard();
+}
+
+function saveTabs(){api.saveTabs(state.tabs.filter(t=>!t.isHistory));}
+
+// ── ショートカットキー取得 ──────────────────────────────────
+let isCapturing=false;
+let heldKeys=new Set();
+
+function startKeyCapture(){
+  if(isCapturing)return;
+  isCapturing=true;
+  heldKeys.clear();
+  capturedKey=null;
+  const cap=document.getElementById('key-capture');
+  const label=document.getElementById('key-capture-label');
+  cap.classList.add('listening');
+  label.textContent='キーを押してください…';
+  label.style.fontWeight='';
+  label.style.color='';
+  document.addEventListener('keydown',onKeyDown);
+  document.addEventListener('keyup',onKeyUp);
+  document.addEventListener('click',cancelCapture,{once:true,capture:true});
+}
+
+function buildKeyStr(){
+  const mods=['Control','Alt','Shift','Meta'];
+  const parts=[];
+  if(heldKeys.has('Control'))parts.push('Ctrl');
+  if(heldKeys.has('Alt'))parts.push('Alt');
+  if(heldKeys.has('Shift'))parts.push('Shift');
+  if(heldKeys.has('Meta'))parts.push('Meta');
+  for(const k of heldKeys){
+    if(!mods.includes(k)){
+      parts.push(k==='+'?'Plus':k===' '?'Space':k.length===1?k.toUpperCase():k);
+    }
+  }
+  return parts.join('+');
+}
+
+function onKeyDown(e){
+  e.preventDefault();
+  heldKeys.add(e.key);
+  const str=buildKeyStr();
+  const label=document.getElementById('key-capture-label');
+  label.textContent=str||'…';
+  label.style.fontWeight='600';
+  label.style.color='var(--accent)';
+}
+
+function onKeyUp(e){
+  const str=buildKeyStr();
+  if(str&&!['Control','Alt','Shift','Meta'].some(m=>str===m)){
+    // 修飾キー以外が含まれている場合に確定
+    capturedKey=str;
+    const label=document.getElementById('key-capture-label');
+    label.textContent=capturedKey+' ✓';
+    label.style.color='var(--ok-text)';
+    document.getElementById('key-text-input').value=capturedKey;
+    stopCapture();
+    applyShortcutNow(capturedKey);
+  }
+  heldKeys.delete(e.key);
+}
+
+function stopCapture(){
+  isCapturing=false;
+  document.removeEventListener('keydown',onKeyDown);
+  document.removeEventListener('keyup',onKeyUp);
+  const cap=document.getElementById('key-capture');
+  cap.classList.remove('listening');
+}
+
+function cancelCapture(e){
+  if(e.target===document.getElementById('key-capture')||e.target.closest('#key-capture'))return;
+  stopCapture();
+}
+
+async function applyShortcutNow(key){
+  const ok=await api.setShortcut(key);
+  if(ok){
+    document.getElementById('cur-key').textContent=key;
+    toast('ショートカットを変更しました: '+key);
+  }else{
+    document.getElementById('key-capture-label').textContent='このキーは使用できません';
+    document.getElementById('key-capture-label').style.color='var(--danger-text)';
+    toast('このキーは使用できません');
+  }
+}
+
+async function applyShortcutFromText(){
+  const val=document.getElementById('key-text-input').value.trim();if(!val)return;
+  await applyShortcutNow(val);
+}
+
+// ── タブ管理 ────────────────────────────────────────────────
+function showAddTabInput(){
+  const row=document.getElementById('add-tab-row');
+  row.style.display='flex';
+  document.getElementById('new-tab-name').focus();
+}
+function hideAddTabInput(){
+  document.getElementById('add-tab-row').style.display='none';
+  document.getElementById('new-tab-name').value='';
+}
+document.getElementById('new-tab-name')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter')confirmAddTab();
+  if(e.key==='Escape')hideAddTabInput();
+});
+function confirmAddTab(){
+  const name=document.getElementById('new-tab-name').value.trim();if(!name)return;
+  const id='g'+Date.now();
+  state.tabs.push({id,name,items:[],pinned:false});
+  state.editTab=id;saveTabs();renderTabCard();renderPills();renderItemCard();hideAddTabInput();
+}
+
+let tabDragSrc=null;
+function renderTabCard(){
+  const card=document.getElementById('tab-card');if(!card)return;card.innerHTML='';
+  const tabs=state.tabs.filter(t=>!t.isHistory);
+  if(!tabs.length){card.innerHTML='<div class="card-row" style="color:var(--text3);font-size:12px">タブなし</div>';return;}
+  tabs.forEach(tab=>{
+    const row=document.createElement('div');row.className='tab-edit-row';
+    row.draggable=true;row.dataset.id=tab.id;
+
+    row.addEventListener('dragstart',e=>{tabDragSrc=tab.id;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.tab-edit-row').forEach(r=>r.classList.remove('drag-over'));});
+    row.addEventListener('dragover',e=>{e.preventDefault();document.querySelectorAll('.tab-edit-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault();row.classList.remove('drag-over');
+      const dstId=tab.id;if(!tabDragSrc||tabDragSrc===dstId)return;
+      const si=state.tabs.findIndex(t=>t.id===tabDragSrc);
+      const di=state.tabs.findIndex(t=>t.id===dstId);
+      const [moved]=state.tabs.splice(si,1);state.tabs.splice(di,0,moved);
+      tabDragSrc=null;saveTabs();renderTabCard();
+    });
+
+    const grip=document.createElement('span');grip.className='grip';
+    grip.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>';
+    const pin=document.createElement('button');pin.className='pin-toggle'+(tab.pinned?' pinned':'');
+    pin.title=tab.pinned?'ピン留め解除':'ピン留め';pin.textContent='📌';
+    pin.onclick=e=>{e.stopPropagation();tab.pinned=!tab.pinned;saveTabs();renderTabCard();};
+    const inp=document.createElement('input');inp.type='text';inp.value=tab.name;
+    inp.oninput=()=>{tab.name=inp.value;};inp.onblur=()=>{saveTabs();renderPills();};
+    inp.onclick=e=>e.stopPropagation();
+    const del=document.createElement('button');del.className='btn danger';del.textContent='削除';del.style.fontSize='11px';del.style.padding='4px 10px';
+    del.onclick=e=>{e.stopPropagation();
+      if(state.tabs.filter(t=>!t.isHistory).length<=1){toast('最後のタブは削除できません');return;}
+      state.tabs=state.tabs.filter(t=>t.id!==tab.id);
+      if(state.editTab===tab.id)state.editTab=state.tabs.find(t=>!t.isHistory)?.id;
+      saveTabs();renderTabCard();renderPills();renderItemCard();
+    };
+    row.append(grip,pin,inp,del);card.appendChild(row);
+  });
+}
+
+function renderPills(){
+  const cont=document.getElementById('edit-pills');if(!cont)return;cont.innerHTML='';
+  state.tabs.filter(t=>!t.isHistory).forEach(tab=>{
+    const btn=document.createElement('button');btn.className='pill'+(tab.id===state.editTab?' active':'');
+    btn.textContent=tab.name;
+    btn.onclick=()=>{state.editTab=tab.id;renderPills();renderItemCard();};
+    cont.appendChild(btn);
+  });
+}
+
+let itemDragSrc=null;
+function renderItemCard(){
+  const card=document.getElementById('item-card');if(!card)return;card.innerHTML='';
+  const tab=state.tabs.find(t=>t.id===state.editTab);
+  if(!tab){card.innerHTML='<div class="card-row" style="color:var(--text3);font-size:12px">タブを選択してください</div>';return;}
+  if(!tab.items||!tab.items.length){card.innerHTML='<div class="card-row" style="color:var(--text3);font-size:12px">アイテムなし</div>';return;}
+  tab.items.forEach((item,i)=>{
+    const obj=itemObj(item);
+    const row=document.createElement('div');row.className='item-edit-row';
+    row.draggable=true;row.dataset.idx=i;
+
+    row.addEventListener('dragstart',e=>{itemDragSrc=i;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.item-edit-row').forEach(r=>r.classList.remove('drag-over'));});
+    row.addEventListener('dragover',e=>{e.preventDefault();document.querySelectorAll('.item-edit-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault();row.classList.remove('drag-over');
+      const dst=parseInt(row.dataset.idx);if(itemDragSrc===null||itemDragSrc===dst)return;
+      const [moved]=tab.items.splice(itemDragSrc,1);tab.items.splice(dst,0,moved);
+      itemDragSrc=null;saveTabs();renderItemCard();
+    });
+
+    const grip=document.createElement('span');grip.className='grip';
+    grip.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>';
+    const fields=document.createElement('div');fields.className='item-fields';
+    const ti=document.createElement('input');ti.type='text';ti.placeholder='タイトル（省略可）';ti.value=obj.title||'';
+    ti.oninput=()=>{tab.items[i]=itemObj(tab.items[i]);tab.items[i].title=ti.value;};ti.onblur=saveTabs;
+    ti.onclick=e=>e.stopPropagation();
+    const sep=document.createElement('div');sep.className='field-sep';
+    const ta=document.createElement('textarea');ta.rows=1;ta.placeholder='内容（コピーされるテキスト）';ta.value=obj.text||'';
+    ta.oninput=()=>{tab.items[i]=itemObj(tab.items[i]);tab.items[i].text=ta.value;};ta.onblur=saveTabs;
+    ta.onclick=e=>e.stopPropagation();
+    fields.append(ti,sep,ta);
+    const del=document.createElement('button');del.className='icon-btn del';
+    del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    del.onclick=e=>{e.stopPropagation();tab.items.splice(i,1);saveTabs();renderItemCard();};
+    row.append(grip,fields,del);card.appendChild(row);
+  });
+}
+
+function addItemEdit(){
+  const inp=document.getElementById('edit-new-item');const val=inp.value.trim();if(!val)return;
+  const tab=state.tabs.find(t=>t.id===state.editTab);
+  if(tab){tab.items.push({title:'',text:val});inp.value='';saveTabs();renderItemCard();}
+}
+function changeMaxHistory(val){state.maxHistory=parseInt(val);api.saveMaxHistory(state.maxHistory);}
+
+// ── データ ──────────────────────────────────────────────────
+async function doExport(fmt){const res=await api.exportData(fmt);if(res.ok)toast('エクスポートしました ✓');}
+async function doImport(fmt){
+  const msg=document.getElementById('io-msg');if(msg)msg.className='io-msg';
+  const overwrite=document.querySelector('input[name="import-mode"]:checked')?.value==='overwrite';
+  const res=await api.importData(fmt, overwrite);
+  if(res.ok){
+    const d=await api.getData();state.tabs=d.tabs||[];
+    state.tabs.forEach(tab=>{if(tab.items)tab.items=tab.items.map(i=>typeof i==='string'?{title:'',text:i}:i);});
+    renderTabCard();renderPills();renderItemCard();
+    if(msg){msg.textContent=`✓ ${res.count}件読み込みました`;msg.className='io-msg ok';}
+  }else if(res?.error&&msg){msg.textContent=`エラー: ${res.error}`;msg.className='io-msg err';}
+}
+
+// ── その他 ──────────────────────────────────────────────────
+function openManual(){api.openExternal('https://net-arekore.com/apps/petadock/manual/');}
+async function doUninstall(){await api.uninstall();}
+
+api.getAppVersion?.().then(v => {
+  const el = document.getElementById('app-version');
+  if (el) el.textContent = 'v' + v;
+});
+function checkUpdate(){ api.checkUpdate?.(); toast('更新を確認しています…'); }
+
+init();
+</script>
+</body>
+</html>
