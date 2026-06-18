@@ -1,8 +1,8 @@
 {
   "name": "petadock",
   "version": "1.0.0",
-  "description": "PetaDock - カスタムクリップボードマネージャー",
-  "author": "PetaDock",
+  "description": "PetaDock - Custom Clipboard Manager",
+  "author": "netarekore",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "electron-store": "^8.1.0",
-    "electron-updater": "^6.1.7",
+    "electron-updater": "^6.8.9",
     "koffi": "^2.8.0"
   },
   "devDependencies": {
@@ -18,7 +18,7 @@
     "electron-builder": "^24.0.0"
   },
   "build": {
-    "appId": "com.petadock.app",
+    "appId": "com.netarekore.petadock",
     "productName": "PetaDock",
     "files": [
       "src/**/*",
@@ -28,7 +28,8 @@
       {
         "provider": "github",
         "owner": "netarekore",
-        "repo": "petadock"
+        "repo": "petadock",
+        "releaseType": "release"
       }
     ],
     "win": {
@@ -36,7 +37,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
