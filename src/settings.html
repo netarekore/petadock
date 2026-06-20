@@ -286,7 +286,7 @@ html,body{width:480px;height:640px;overflow:hidden;background:var(--bg);color:va
           <div class="card-row">
             <div class="row-top">
               <span class="row-label">最新バージョンを確認</span>
-              <button class="btn default" onclick="checkUpdate()">更新を確認</button>
+              <button class="btn default" id="check-update-btn" onclick="checkUpdate()">更新を確認</button>
             </div>
             <div class="row-desc">新しいバージョンがある場合は更新ダイアログが表示されます。保存データは更新後も保持されます。</div>
           </div>
@@ -568,7 +568,31 @@ api.getAppVersion?.().then(v => {
   const el = document.getElementById('app-version');
   if (el) el.textContent = 'v' + v;
 });
-function checkUpdate(){ api.checkUpdate?.(); toast('更新を確認しています…'); }
+let isCheckingUpdate = false;
+let checkUpdateTimeout = null;
+
+function resetCheckUpdateBtn(){
+  isCheckingUpdate = false;
+  if (checkUpdateTimeout) { clearTimeout(checkUpdateTimeout); checkUpdateTimeout = null; }
+  const btn = document.getElementById('check-update-btn');
+  if (btn) { btn.disabled = false; btn.textContent = '更新を確認'; btn.style.opacity = ''; btn.style.cursor = ''; }
+}
+
+function checkUpdate(){
+  if (isCheckingUpdate) return;
+  isCheckingUpdate = true;
+  const btn = document.getElementById('check-update-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '確認中…'; btn.style.opacity = '0.6'; btn.style.cursor = 'default'; }
+  api.checkUpdate?.();
+  toast('更新を確認しています…');
+  // ダイアログ表示直前にmain.jsから通知が来た時点でボタンを戻す
+  // 念のためのフォールバックとして15秒後にも強制リセット
+  checkUpdateTimeout = setTimeout(resetCheckUpdateBtn, 15000);
+}
+
+api.onUpdateCheckFinished?.(() => {
+  resetCheckUpdateBtn();
+});
 
 init();
 </script>

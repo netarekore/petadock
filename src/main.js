@@ -105,6 +105,7 @@ let isUninstalling = false;
 let targetHwnd = null;
 let updateListenersRegistered = false;
 let isUpdateChecking = false;
+let isManualCheck = false;
 
 function safeHideWindow(w) {
   if (!w || w.isDestroyed()) return;
@@ -114,6 +115,10 @@ function safeHideWindow(w) {
 function safeSendToMain(channel, data) {
   if (!win || win.isDestroyed()) return;
   win.webContents.send(channel, data);
+}
+function safeSendToSettings(channel, data) {
+  if (!settingsWin || settingsWin.isDestroyed()) return;
+  settingsWin.webContents.send(channel, data);
 }
 
 function rememberTargetWindow() {
@@ -317,6 +322,7 @@ function registerUpdateListeners() {
   autoUpdater.autoDownload = false;
 
   autoUpdater.on('update-available', async (info) => {
+    safeSendToSettings('update-check-finished');
     const parent = win && !win.isDestroyed() ? win : null;
 
     const { response } = await dialog.showMessageBox(parent, {
@@ -347,8 +353,19 @@ function registerUpdateListeners() {
     }
   });
 
-  autoUpdater.on('update-not-available', () => {
+  autoUpdater.on('update-not-available', async () => {
     isUpdateChecking = false;
+    safeSendToSettings('update-check-finished');
+
+    if (isManualCheck) {
+      const parent = win && !win.isDestroyed() ? win : null;
+      await dialog.showMessageBox(parent, {
+        type: 'info',
+        title: 'PetaDock 更新確認',
+        message: '現在お使いのバージョンが最新です。',
+      });
+    }
+    isManualCheck = false;
   });
 
   autoUpdater.on('download-progress', (p) => {
@@ -378,6 +395,8 @@ function registerUpdateListeners() {
 
   autoUpdater.on('error', (error) => {
     isUpdateChecking = false;
+    isManualCheck = false;
+    safeSendToSettings('update-check-finished');
 
     const parent = win && !win.isDestroyed() ? win : null;
 
@@ -390,7 +409,7 @@ function registerUpdateListeners() {
   });
 }
 
-function checkForUpdates() {
+function checkForUpdates(manual = false) {
   if (!app.isPackaged) {
     dialog.showMessageBox(null, {
       type: 'info',
@@ -403,10 +422,13 @@ function checkForUpdates() {
   if (isUpdateChecking) return;
 
   isUpdateChecking = true;
+  isManualCheck = manual;
   registerUpdateListeners();
 
   autoUpdater.checkForUpdates().catch((error) => {
     isUpdateChecking = false;
+    isManualCheck = false;
+    safeSendToSettings('update-check-finished');
 
     const parent = win && !win.isDestroyed() ? win : null;
 
@@ -492,7 +514,8 @@ ipcMain.handle('open-external', (_, url) => {
 });
 
 ipcMain.handle('check-update', () => {
-  checkForUpdates();
+  checkForUpdates(true);
+  return true;
 });
 
 ipcMain.handle('get-app-version', () => {
