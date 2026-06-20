@@ -1,12 +1,13 @@
 {
   "name": "petadock",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "PetaDock - Custom Clipboard Manager",
   "author": "netarekore",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron .",
-    "build:win": "electron-builder --win --x64"
+  "start": "electron .",
+  "build:win": "electron-builder --win --x64",
+  "release": "electron-builder --win --x64 --publish always"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
