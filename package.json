@@ -1,6 +1,6 @@
 {
   "name": "petadock",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "PetaDock - Custom Clipboard Manager",
   "author": "netarekore",
   "main": "src/main.js",
@@ -37,9 +37,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ]
     },
@@ -52,7 +50,8 @@
       "shortcutName": "PetaDock",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "runAfterFinish": true
+      "runAfterFinish": true,
+      "artifactName": "PetaDock-Setup-${version}.${ext}"
     }
   }
 }
